@@ -1,3 +1,43 @@
 spring:
-  application:
-    name: resilient-reward-core
+  threads:
+    virtual:
+      enabled: true # Java 21 Virtual Threads 활성화
+
+  datasource:
+    url: jdbc:h2:mem:rewarddb;MODE=MySQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  batch:
+    jdbc:
+      initialize-schema: always
+    job:
+      enabled: false # 서버 시작 시 배치 자동 실행 방지
+
+resilience4j:
+  ratelimiter:
+    instances:
+      rewardLimiter:
+        limitForPeriod: 50
+        limitRefreshPeriod: 1s
+        timeoutDuration: 0
+
+  bulkhead:
+    instances:
+      notificationBulkhead:
+        maxConcurrentCalls: 100 # FCM API 동시 발송 제한 (p-map 대체)
+        maxWaitDuration: 0
