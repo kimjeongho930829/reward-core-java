@@ -16,6 +16,15 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        jdbc.batch_size: 100 # Batch Write 최적화
+        order_inserts: true
+        order_updates: true
+
+  cache:
+    type: redis
+    cache-names: rewards
+    redis:
+      time-to-live: 10m # 보상 목록은 10분간 캐싱
 
   data:
     redis:
@@ -28,11 +37,24 @@ spring:
     job:
       enabled: false # 서버 시작 시 배치 자동 실행 방지
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, metrics, prometheus # 모니터링 엔드포인트 노출
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true # HTTP 요청에 대한 히스토그램 메트릭 수집
+
 resilience4j:
   ratelimiter:
     instances:
       rewardLimiter:
-        limitForPeriod: 50
+        limitForPeriod: 50 # 초당 50회 제한 (시스템 보호 및 어뷰징 방지)
         limitRefreshPeriod: 1s
         timeoutDuration: 0
 
@@ -41,3 +63,8 @@ resilience4j:
       notificationBulkhead:
         maxConcurrentCalls: 100 # FCM API 동시 발송 제한 (p-map 대체)
         maxWaitDuration: 0
+
+    localFallbackLimiter:
+      limitForPeriod: 100 # Redis 장애 시 로컬에서 초당 100회로 제한하여 서버 보호
+      limitRefreshPeriod: 1s
+      timeoutDuration: 0
