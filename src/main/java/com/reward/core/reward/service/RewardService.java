@@ -3,10 +3,12 @@ package com.reward.core.reward.service;
 import com.reward.core.common.utils.DistributedRateLimiter;
 import com.reward.core.common.utils.WeightedRandomPicker;
 import com.reward.core.reward.domain.Reward;
+import com.reward.core.reward.event.RewardIssuedEvent;
 import com.reward.core.reward.repository.RewardRepository;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,6 +21,7 @@ public class RewardService {
     private final RewardRepository rewardRepository;
     private final RewardIssueService rewardIssueService;
     private final DistributedRateLimiter distributedRateLimiter;
+    private final ApplicationEventPublisher eventPublisher;
 
     @RateLimiter(name = "rewardLimiter")
     public void participate(Long userId) {
@@ -43,6 +46,9 @@ public class RewardService {
 
         // 4. 실제 지급 처리 (비관적 락 적용된 서비스 호출)
         rewardIssueService.issue(userId, selectedReward.getId());
+
+        // 5. 이벤트 발행 (알림 등 후속 처리를 위해)
+        eventPublisher.publishEvent(new RewardIssuedEvent(userId, selectedReward.getName()));
         
         log.info("사용자 {} - 보상 참여 프로세스 완료", userId);
     }
