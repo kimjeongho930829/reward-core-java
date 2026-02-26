@@ -23,7 +23,15 @@
 - **Solution**:
     - **Redis Lua Script**: 진입 단계에서 Sliding Window Rate Limiting을 적용하여 비정상적 트래픽을 선제 차단합니다.
     - **MySQL Pessimistic Lock**: 보상 수량 차감 시 `SELECT ... FOR UPDATE`를 활용해 DB 수준의 원자성을 보장합니다.
-- **Result**: 0.1%의 오차도 허용하지 않는 철저한 데이터 정합성을 달성했습니다.
+- **Resilience Strategy (Fallback)**:
+    - **Redis Fallback**: Redis 장애 발생 시 시스템 중단을 방지하기 위해 **Resilience4j 기반의 Local Rate Limiter**로 즉시 전환(Fallback)하여 서비스 가용성을 유지합니다.
+- **Result**: 0.1%의 오차도 허용하지 않는 철저한 데이터 정합성과 어떤 상황에서도 멈추지 않는 높은 가용성을 달성했습니다.
+
+---
+
+## 📊 Observability & Monitoring
+- **Spring Boot Actuator**: 시스템 헬스 체크 및 주요 지표 노출.
+- **Prometheus & Micrometer**: 실시간 트래픽, 응답 시간, 가상 스레드 사용량 등 기술적 메트릭 수집 및 시각화 준비.
 
 ---
 
@@ -46,8 +54,24 @@
 
 ---
 
-## 📝 How to Run
+## 📝 How to Run & Test
+
+### 1. 인프라 환경 구축 (Docker)
+본 프로젝트는 Redis와 MySQL 환경이 필요합니다. 아래 명령어로 즉시 환경을 구축할 수 있습니다.
+```bash
+docker-compose up -d
+```
+
+### 2. 애플리케이션 실행
+애플리케이션 시작 시 `DataSeeder`를 통해 테스트용 보상 데이터가 자동 생성됩니다.
 ```bash
 ./gradlew bootRun
 ```
-*(Redis와 MySQL이 로컬에 실행 중이어야 합니다. 개발 환경에서는 H2와 내장 Redis 설정을 지원합니다.)*
+
+### 2. API 테스트 (Swagger UI)
+애플리케이션 실행 후 아래 주소에 접속하여 브라우저에서 직접 API를 테스트할 수 있습니다.
+- **주소**: [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+
+#### 주요 테스트 시나리오
+- **실시간 보상 참여**: `POST /api/v1/rewards/participate` (userId 입력)
+- **운영자 배치 작업 실행**: `POST /api/v1/admin/campaign/start` (rewardId 입력)
