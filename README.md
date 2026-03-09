@@ -48,7 +48,7 @@
 ## 🛠️ Tech Stacks
 - **Language**: Java 21
 - **Framework**: Spring Boot 3.4.2, Spring Batch
-- **Data**: Spring Data JPA (MySQL), Spring Data Redis
+- **Data**: MySQL, Spring Data JPA, QueryDSL, Spring Data Redis
 - **Resilience**: Resilience4j (RateLimiter, Bulkhead)
 - **Build**: Gradle
 
