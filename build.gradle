@@ -55,6 +55,12 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'io.micrometer:micrometer-registry-prometheus'
 
+	// Querydsl (Jakarta EE for Spring Boot 3+)
+	implementation 'io.github.openfeign.querydsl:querydsl-jpa-spring:6.12'
+	annotationProcessor "io.github.openfeign.querydsl:querydsl-apt:6.12:jakarta"
+	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+
 	// Test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.batch:spring-batch-test'
